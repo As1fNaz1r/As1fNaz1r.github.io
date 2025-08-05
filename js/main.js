@@ -28,6 +28,24 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Initialize project filter if present
   initProjectFilter();
+
+  // Initialize project card hover effects
+  initProjectCardHovers();
+
+  // Initialize hero canvas animation
+  initHeroAnimation();
+
+  // Initialize back to top button
+  initBackToTopButton();
+
+  // Initialize typewriter effect
+  initTypewriter();
+
+  // Initialize GitHub calendar
+  initGitHubCalendar();
+
+  // Initialize contact form
+  initContactForm();
   
   // Update copyright year
   updateCopyrightYear();
@@ -107,6 +125,10 @@ function initScrollAnimations() {
   // Apply different animation classes to different elements
   document.querySelectorAll('.section-title').forEach(element => {
     element.classList.add('bounce-in');
+    const h2 = element.querySelector('h2');
+    if (h2) {
+      h2.classList.add('gradient-text');
+    }
   });
   
   document.querySelectorAll('.skill-category').forEach((element, index) => {
@@ -134,6 +156,10 @@ function initScrollAnimations() {
   
   document.querySelectorAll('.publication-item').forEach(element => {
     element.classList.add('slide-in-right');
+  });
+
+  document.querySelectorAll('#about .lead, #about .text-center').forEach(element => {
+    element.classList.add('fade-in');
   });
   
   // Check if elements are in viewport and add visible class
@@ -286,15 +312,11 @@ function initInteractiveCursor() {
   const hoverables = document.querySelectorAll('a, button, .skill-category, .project-card, .timeline-item');
   hoverables.forEach(hoverable => {
     hoverable.addEventListener('mouseenter', () => {
-      cursor.style.transform = 'translate(-50%, -50%) scale(1.5)';
-      cursor.style.borderColor = 'var(--secondary-color)';
-      cursor.style.backgroundColor = 'rgba(93, 156, 236, 0.1)';
+      cursor.classList.add('hovered');
     });
     
     hoverable.addEventListener('mouseleave', () => {
-      cursor.style.transform = 'translate(-50%, -50%) scale(1)';
-      cursor.style.borderColor = 'var(--primary-color)';
-      cursor.style.backgroundColor = 'transparent';
+      cursor.classList.remove('hovered');
     });
   });
   
@@ -372,6 +394,192 @@ function initSkillProgressBars() {
   window.addEventListener('scroll', animateProgressBars);
   // Initial check
   setTimeout(animateProgressBars, 500);
+}
+
+// Add wave dividers between sections
+// Initialize project card hover effects for staggered badge animation
+function initProjectCardHovers() {
+  const projectCards = document.querySelectorAll('.project-card');
+  
+  projectCards.forEach(card => {
+    const badges = card.querySelectorAll('.tech-badge');
+    badges.forEach((badge, index) => {
+      badge.style.transitionDelay = `${index * 0.05}s`;
+    });
+  });
+}
+
+// Initialize hero canvas animation
+function initHeroAnimation() {
+  const canvas = document.getElementById('hero-canvas');
+  if (!canvas) return;
+
+  const ctx = canvas.getContext('2d');
+  let dots = [];
+  let mouse = { x: null, y: null };
+
+  const dotColor = 'rgba(50, 240, 140, 0.4)';
+  const dotRadius = 1;
+  const dotSpacing = 30;
+
+  function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    createDots();
+  }
+
+  function createDots() {
+    dots = [];
+    for (let x = dotSpacing; x < canvas.width; x += dotSpacing) {
+      for (let y = dotSpacing; y < canvas.height; y += dotSpacing) {
+        dots.push({ x: x, y: y, baseAlpha: Math.random() * 0.1 + 0.05, alpha: Math.random() * 0.1 + 0.05 });
+      }
+    }
+  }
+
+  function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    dots.forEach(dot => {
+      let distance = Math.sqrt(Math.pow(mouse.x - dot.x, 2) + Math.pow(mouse.y - dot.y, 2));
+      let maxDistance = 150;
+
+      if (distance < maxDistance) {
+        dot.alpha = 0.1 + (1 - distance / maxDistance) * 0.5;
+      } else {
+        dot.alpha -= (dot.alpha - dot.baseAlpha) * 0.05;
+      }
+
+      ctx.beginPath();
+      ctx.arc(dot.x, dot.y, dotRadius, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(50, 240, 140, ${dot.alpha})`;
+      ctx.fill();
+    });
+
+    requestAnimationFrame(animate);
+  }
+
+  window.addEventListener('resize', resizeCanvas);
+  window.addEventListener('mousemove', e => {
+    mouse.x = e.clientX;
+    mouse.y = e.clientY;
+  });
+
+  resizeCanvas();
+  animate();
+}
+
+// Initialize the back to top button
+function initBackToTopButton() {
+  const backToTopButton = document.getElementById('back-to-top');
+  if (!backToTopButton) return;
+
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 300) {
+      backToTopButton.classList.add('visible');
+    } else {
+      backToTopButton.classList.remove('visible');
+    }
+  });
+
+  backToTopButton.addEventListener('click', (e) => {
+    e.preventDefault();
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  });
+}
+
+// Initialize typewriter effect for the About Me section
+function initTypewriter() {
+  const target = document.getElementById('about-me-text');
+  if (!target) return;
+
+  const text = target.textContent.trim();
+  target.textContent = '';
+  target.style.opacity = 1; // Make it visible before typing starts
+  let i = 0;
+
+  const observer = new IntersectionObserver((entries, observer) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const typer = setInterval(() => {
+          if (i < text.length) {
+            target.textContent += text.charAt(i);
+            i++;
+          } else {
+            clearInterval(typer);
+          }
+        }, 50); // Adjust typing speed here (milliseconds)
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.5 });
+
+  observer.observe(target);
+}
+
+// Initialize GitHub contributions calendar
+function initGitHubCalendar() {
+  const calendarContainer = document.querySelector('.calendar');
+  if (calendarContainer && typeof GitHubCalendar === 'function') {
+    GitHubCalendar(calendarContainer, "As1fNaz1r", {
+      responsive: true,
+      global_stats: false,
+      tooltips: true
+    });
+  }
+}
+
+// Handle contact form submission
+function initContactForm() {
+  const form = document.getElementById('contact-form');
+  if (!form) return;
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    let status = form.querySelector('.form-status');
+    if (!status) {
+      status = document.createElement('div');
+      status.className = 'form-status text-center mt-3';
+      form.appendChild(status);
+    }
+
+    const data = new FormData(form);
+
+    try {
+      const response = await fetch(form.action, {
+        method: form.method,
+        body: data,
+        headers: {
+          'Accept': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        status.innerHTML = 'Thanks for your message! I will get back to you soon.';
+        status.style.color = 'var(--primary-color)';
+        form.reset();
+      } else {
+        const responseData = await response.json();
+        if (Object.hasOwn(responseData, 'errors')) {
+          status.innerHTML = responseData["errors"].map(error => error["message"]).join(", ");
+        } else {
+          status.innerHTML = 'Oops! There was a problem submitting your form.';
+        }
+        status.style.color = 'red';
+      }
+    } catch (error) {
+      status.innerHTML = 'Oops! There was a problem submitting your form.';
+      status.style.color = 'red';
+    }
+
+    setTimeout(() => {
+      status.innerHTML = '';
+    }, 5000);
+  });
 }
 
 // Add wave dividers between sections
